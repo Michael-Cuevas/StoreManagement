@@ -1,0 +1,45 @@
+﻿@page "/fetchinventory"
+@using StoreManagement.Models
+@inject HttpClient Http
+
+<h3>Inventory</h3>
+
+@if (inventoryItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Inventory Id</th>
+                <th>Product Id</th>
+                <th>Product Name</th>
+                <th>Product Description</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var inventory in inventoryItems)
+            {
+                <tr>
+                    <td>@inventory.Id</td>
+                    <td>@inventory.ProductId</td>
+                    <td>@inventory.Product?.Name</td>
+                    <td>@inventory.Product?.Description</td>
+                    <td>@inventory.Quantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Inventory>? inventoryItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        inventoryItems = await Http.GetFromJsonAsync<List<Inventory>>("/inventory");
+    }
+}
