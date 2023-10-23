@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StoreManagement.Data;
 
@@ -10,9 +11,11 @@ using StoreManagement.Data;
 namespace StoreManagement.Migrations
 {
     [DbContext(typeof(StoreContext))]
-    partial class StoreContextModelSnapshot : ModelSnapshot
+    [Migration("20231022055228_AddedSalesData")]
+    partial class AddedSalesData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.12");
@@ -42,23 +45,14 @@ namespace StoreManagement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateOnly?>("CurrentSaleDate")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("FinalReduction")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("InitialCompleted")
-                        .HasColumnType("INTEGER");
-
                     b.Property<decimal>("InitialReduction")
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IntermediateCompleted")
-                        .HasColumnType("INTEGER");
 
                     b.Property<decimal>("IntermidiateReduction")
                         .HasColumnType("TEXT");
@@ -67,9 +61,6 @@ namespace StoreManagement.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("SaleEnded")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateOnly>("StartDate")
@@ -110,28 +101,6 @@ namespace StoreManagement.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("StoreManagement.Models.SalesDatum", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("MarkdownPlanId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateOnly>("SalesDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TotalSold")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MarkdownPlanId");
-
-                    b.ToTable("SalesData");
-                });
-
             modelBuilder.Entity("StoreManagement.Models.Inventory", b =>
                 {
                     b.HasOne("StoreManagement.Models.Product", "Product")
@@ -152,17 +121,6 @@ namespace StoreManagement.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("StoreManagement.Models.SalesDatum", b =>
-                {
-                    b.HasOne("StoreManagement.Models.MarkdownPlan", "MarkdownPlan")
-                        .WithMany()
-                        .HasForeignKey("MarkdownPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MarkdownPlan");
                 });
 #pragma warning restore 612, 618
         }

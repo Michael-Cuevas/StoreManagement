@@ -1,6 +1,8 @@
 ﻿@page "/markdownplans"
-@using StoreManagement.Models
+@using StoreManagement.Shared.Models
+@using Microsoft.AspNetCore.Components.Web
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <h3>Markdown Plans</h3>
 
@@ -58,6 +60,7 @@ else
 <table class="table table-striped mt-5">
     <thead>
         <tr>
+            <th>Is Active</th>
             <th>Start Date</th>
             <th>End Date</th>
             <th>Product</th>
@@ -71,6 +74,7 @@ else
         @foreach (var plan in markdownPlans)
         {
             <tr>
+                <td>@plan.IsActive</td>
                 <td>@plan.StartDate</td>
                 <td>@plan.EndDate</td>
                 <td>@GetProductName(plan.ProductId)</td>
@@ -78,6 +82,7 @@ else
                 <td>@plan.IntermidiateReduction</td>
                 <td>@plan.FinalReduction</td>
                 <td>
+                    <button class="btn btn-primary" @onclick="(() => NavigateToEditPlan(plan.Id))">Edit</button>
                     <button class="btn btn-danger" @onclick="(() => DeletePlan(plan.Id))">X</button>
                 </td>
             </tr>
@@ -102,8 +107,10 @@ else
     protected override async Task OnInitializedAsync()
     {
         markdownPlans = await Http.GetFromJsonAsync<List<MarkdownPlan>>("/markdownplan");
+        
         products = await Http.GetFromJsonAsync<List<Product>>("/products");
     }
+
     private string GetProductName(int productId)
     {
         return products.FirstOrDefault(p => p.Id == productId)?.Name ?? "Unknown Product";
@@ -112,6 +119,7 @@ else
     {
         return products.FirstOrDefault(p => p.Id == newPlan.ProductId);
     }
+
     private async Task DeletePlan(int id)
     {
         var response = await Http.DeleteAsync($"/markdownplan/{id}");
@@ -122,6 +130,14 @@ else
         }
     }
 
+    private void NavigateToEditPlan(int planId)
+    {
+        if (markdownPlans.FirstOrDefault(mp => mp.Id == planId).IsActive)
+            Navigation.NavigateTo($"/editmarkdownplansales/{planId.ToString()}");
+        else
+            Navigation.NavigateTo($"/editmarkdownplan/{planId.ToString()}");
+    }
+
     private void ToggleCreateForm()
     {
         showCreateForm = !showCreateForm;
@@ -129,9 +145,6 @@ else
 
     private async Task CreatePlan()
     {
-
-
-
         //validate date, at least 7 days out
         if (newPlan.EndDate <= newPlan.StartDate.AddDays(7))
         {
@@ -139,7 +152,7 @@ else
             return; 
         }
 
-        decimal finalPrice = GetSelectedProduct().Price * (newPlan.InitialReduction * .01m) * (newPlan.IntermidiateReduction * .01m) * (newPlan.FinalReduction * .01m);
+        decimal finalPrice = GetSelectedProduct().Price * (1 - (newPlan.InitialReduction*.01m)) * (1-(newPlan.IntermidiateReduction * .01m)) * (1-(newPlan.FinalReduction * .01m));
         //validate final reduction
         if(finalPrice< .5m)
         {
@@ -162,22 +175,4 @@ else
             };
         validationMessage = string.Empty; // Reset validation message
     }
-
-
-    /*public class MarkdownPlan
-    {
-        public int Id { get; set; }
-        public DateOnly StartDate { get; set; }
-        public DateOnly EndDate { get; set; }
-        public int ProductId { get; set; }
-        public decimal InitialReduction { get; set; }
-        public decimal IntermidiateReduction { get; set; }
-        public decimal FinalReduction { get; set; }
-    }*/
-
-    /*public class Product
-    {
-        public string? Name { get; set; }
-        public int? Id { get; set; }
-    }*/
 }

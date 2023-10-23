@@ -1,4 +1,4 @@
-﻿namespace StoreManagement.Models
+﻿namespace StoreManagement.Shared.Models
 {
     public class Inventory
     {

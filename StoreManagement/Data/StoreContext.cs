@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using StoreManagement.Models;
+using StoreManagement.Shared.Models;
 
 
 namespace StoreManagement.Data
@@ -11,6 +11,8 @@ namespace StoreManagement.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<MarkdownPlan> MarkdownPlans { get; set; }
+
+        public DbSet<SalesDatum> SalesData { get; set; }
 
         /* uncomment for postgres
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

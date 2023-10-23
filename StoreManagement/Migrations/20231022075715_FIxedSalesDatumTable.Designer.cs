@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StoreManagement.Data;
 
@@ -10,9 +11,11 @@ using StoreManagement.Data;
 namespace StoreManagement.Migrations
 {
     [DbContext(typeof(StoreContext))]
-    partial class StoreContextModelSnapshot : ModelSnapshot
+    [Migration("20231022075715_FIxedSalesDatumTable")]
+    partial class FIxedSalesDatumTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.12");
@@ -42,23 +45,14 @@ namespace StoreManagement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateOnly?>("CurrentSaleDate")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("FinalReduction")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("InitialCompleted")
-                        .HasColumnType("INTEGER");
-
                     b.Property<decimal>("InitialReduction")
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IntermediateCompleted")
-                        .HasColumnType("INTEGER");
 
                     b.Property<decimal>("IntermidiateReduction")
                         .HasColumnType("TEXT");
@@ -67,9 +61,6 @@ namespace StoreManagement.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("SaleEnded")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateOnly>("StartDate")

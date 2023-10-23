@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using StoreManagement.Data;
-using StoreManagement.Models;
+using StoreManagement.Shared.Models;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors();
@@ -41,6 +42,8 @@ using (var scope = app.Services.CreateScope())
     dbContext.SeedData();
 }
 
+
+//################# Products #############
 
 // READ all products
 app.MapGet("/products", (StoreContext context) => 
@@ -182,14 +185,22 @@ app.MapPut("/markdownplan/{id}", async (StoreContext context, int id, MarkdownPl
     markdownPlan.InitialReduction = updatedMarkdownPlan.InitialReduction;
     markdownPlan.IntermidiateReduction = updatedMarkdownPlan.IntermidiateReduction;
     markdownPlan.FinalReduction = updatedMarkdownPlan.FinalReduction;
+    markdownPlan.IsActive = updatedMarkdownPlan.IsActive;
+    markdownPlan.CurrentSaleDate = updatedMarkdownPlan.CurrentSaleDate;
+    markdownPlan.SaleEnded = updatedMarkdownPlan.SaleEnded;
+    markdownPlan.IntermediateCompleted = updatedMarkdownPlan.IntermediateCompleted;
+    markdownPlan.InitialCompleted = updatedMarkdownPlan.InitialCompleted;
+
+    //context.SaveChanges();
 
     context.SaveChanges();
 
     await context.SaveChangesAsync();
 
-    return Results.NoContent();
+    return Results.Ok();
 
 });
+
 
 // DELETE markdown plan by ID
 app.MapDelete("/markdownplan/{id}", (StoreContext context, int id) =>
@@ -202,6 +213,119 @@ app.MapDelete("/markdownplan/{id}", (StoreContext context, int id) =>
     return Results.Ok();
 });
 
+//################# SalesDatum #############
+
+// CREATE a new sales datum
+app.MapPost("/salesdata", (StoreContext context, SalesDatum salesDatum) =>
+{
+    context.SalesData.Add(salesDatum);
+    context.SaveChanges();
+
+    return Results.Created($"/salesdata/{salesDatum.Id}", salesDatum);
+});
+
+// READ all sales data for a markdown plan
+app.MapGet("/salesdata/forplan/{planId}", (StoreContext context, int planId) =>
+{
+    return context.SalesData.Where(sd => sd.MarkdownPlanId == planId).ToList() ?? null;
+});
+
+// READ a single sales datum by its ID
+app.MapGet("/salesdata/{id}", async (StoreContext context, int id) =>
+    await context.SalesData.FindAsync(id)
+    is SalesDatum salesDatum
+        ? Results.Ok(salesDatum)
+        : Results.NotFound());
+
+// UPDATE a sales datum by its ID
+app.MapPut("/salesdata/{id}", async (StoreContext context, int id, SalesDatum updatedSalesDatum) =>
+{
+    var salesDatum = context.SalesData.Find(id);
+    if (salesDatum == null) return Results.NotFound();
+
+    salesDatum.SalesDate = updatedSalesDatum.SalesDate;
+    salesDatum.TotalSold = updatedSalesDatum.TotalSold;
+
+    context.SaveChanges();
+
+    await context.SaveChangesAsync();
+
+    return Results.NoContent();
+
+});
+
+// DELETE a sales datum by its ID
+app.MapDelete("/salesdata/{id}", (StoreContext context, int id) =>
+{
+    var salesDatum = context.SalesData.Find(id);
+    if (salesDatum == null) return Results.NotFound();
+
+    context.SalesData.Remove(salesDatum);
+    context.SaveChanges();
+    return Results.Ok();
+});
+
+app.MapPut("/activateplan/{id}", async (StoreContext context, int id, MarkdownPlan updatedMarkdownPlan) =>
+{
+
+    var markdownPlan = context.MarkdownPlans.Find(id);
+    if (markdownPlan == null) return Results.NotFound();
+
+    markdownPlan.IsActive = true;
+    markdownPlan.InitialCompleted = true;
+    var product = context.Products.Find(markdownPlan.ProductId);
+    product.Price = product.Price * (1 - (markdownPlan.InitialReduction * .01m));
+    markdownPlan.CurrentSaleDate = markdownPlan.StartDate;
+
+    await context.SaveChangesAsync();
+    return Results.Ok();
+});
+
+app.MapPut("/updatepricesandcounts/{id}", async (StoreContext context, int id, SalesDatum datum) =>
+{
+    var salesDatum = context.SalesData.Find(id);
+    var markdown = context.MarkdownPlans.Find(salesDatum.MarkdownPlanId);
+    var product = context.Products.Find(markdown.ProductId);
+    var inventory = context.Inventories.FirstOrDefault(inv => inv.ProductId == product.Id);
+    float saleLength = markdown.EndDate.DayNumber - markdown.StartDate.DayNumber;
+    int saleProgress = markdown.EndDate.DayNumber - datum.SalesDate.DayNumber;
+    float saleProgressPercent = 1- (saleProgress / saleLength);
+
+    /*if (!markdown.InitialCompleted)
+    {
+        product.Price = product.Price * (1-(markdown.InitialReduction * .01m));
+        markdown.InitialCompleted = true;
+    }*/
+
+    //TODO: intermediateCompleted is not being set to true on DB even though it is being set here
+    if (!markdown.IntermediateCompleted && saleProgressPercent >= .5)
+    {
+        product.Price = product.Price * (1-(markdown.IntermidiateReduction *.01m));
+        markdown.IntermediateCompleted = true;
+        context.Entry(markdown).State = EntityState.Modified;
+
+    }
+    else if(salesDatum.SalesDate == markdown.EndDate.AddDays(-1))
+    {
+        product.Price = product.Price *(1- (markdown.FinalReduction * .01m));
+        markdown.IsActive = true;
+        context.Entry(markdown).State = EntityState.Modified;
+
+    }
+    else if(salesDatum.SalesDate == markdown.EndDate)
+    {
+        markdown.SaleEnded = true;
+        context.Entry(markdown).State = EntityState.Modified;
+    }
+
+
+    inventory.Quantity = inventory.Quantity - salesDatum.TotalSold;
+
+    await context.SaveChangesAsync();
+
+    return Results.NoContent();
+
+});
 
 app.Run();
 
