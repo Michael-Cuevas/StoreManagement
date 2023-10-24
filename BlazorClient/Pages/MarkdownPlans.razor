@@ -107,7 +107,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         markdownPlans = await Http.GetFromJsonAsync<List<MarkdownPlan>>("/markdownplan");
-        
+
         products = await Http.GetFromJsonAsync<List<Product>>("/products");
     }
 
@@ -151,8 +151,9 @@ else
             validationMessage = "The end date should be at least one week after the start date.";
             return; 
         }
-        if (newPlan.Product == null)
+        if (newPlan.ProductId == 0)
         {
+            
             validationMessage = "You must select a product";
             return;
         }
