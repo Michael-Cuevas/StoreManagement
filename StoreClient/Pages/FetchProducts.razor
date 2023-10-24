@@ -1,0 +1,73 @@
+﻿@page "/fetchproducts"
+@using StoreManagement.Shared.Models
+@using Microsoft.AspNetCore.Components.Web
+@inject HttpClient Http
+@inject IJSRuntime jsRuntime
+
+<h3>Products</h3>
+
+@if (products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button @onclick="NavigateToCreate">Create New Product</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Cost</th>
+                <th>Price</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td><span @onclick="() => NavigateToEdit(product.Id)">@product.Id</span></td>
+                    <td><span @onclick="() => NavigateToEdit(product.Id)">@product.Name</span></td>
+                    <td><span @onclick="() => NavigateToEdit(product.Id)">@product.Description</span></td>
+                    <td><span @onclick="() => NavigateToEdit(product.Id)">@product.Cost</span></td>
+                    <td><span @onclick="() => NavigateToEdit(product.Id)">@product.Price</span></td>
+                    <td><button @onclick="() => DeleteProduct(product.Id)" style="background-color: transparent; border: none;">❌</button></td> <!-- Button to delete the product -->
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Product>? products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await Http.GetFromJsonAsync<List<Product>>("/products");
+    }
+
+    private async Task DeleteProduct(int productId)
+    {
+        var confirm = await jsRuntime.InvokeAsync<bool>("window.confirm", "Are you sure you want to delete?");
+        if (confirm)
+        {
+            await Http.DeleteAsync($"/products/{productId}");
+            products = await Http.GetFromJsonAsync<List<Product>>("/products");  // Refresh the products list after deletion
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/createproduct");
+    }
+
+    private void NavigateToEdit(int productId)
+    {
+        Navigation.NavigateTo($"/editproduct/{productId.ToString()}");
+    }
+
+    [Inject]
+    private NavigationManager Navigation { get; set; }
+}

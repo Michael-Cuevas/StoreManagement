@@ -38,7 +38,7 @@
 
     private async Task HandleValidSubmit()
     {
-        var response = await Http.PostAsJsonAsync("/products", newProduct);
+        var response = await Http.PostAsJsonAsync("https://localhost:7005/products", newProduct);
         if (response.IsSuccessStatusCode)
         {
             Navigation.NavigateTo("/fetchproducts");

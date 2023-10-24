@@ -8,6 +8,8 @@
 
         public DateOnly EndDate { get; set; }
 
+        public int InitialInventory { get; set; }
+
         public DateOnly? CurrentSaleDate { get; set; }
 
         public virtual Product Product { get; set; }

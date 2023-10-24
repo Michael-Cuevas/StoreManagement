@@ -39,23 +39,11 @@ else
     }
 
     <h5>Sales Data</h5>
-    <div class="mb-3">
-        <strong>Initial Inventory:</strong> @markdownPlan.InitialInventory
-    </div>
-    <div class="mb-3">
-        <strong>Product ID:</strong> @markdownPlan.ProductId
-    </div>
-    <div class="mb-3">
-        <strong>Product Name:</strong> @markdownPlan.Product?.Name
-    </div>
     <table class="table table-striped mt-5">
         <thead>
             <tr>
                 <th>Sales Date</th>
                 <th>Total Sold</th>
-                <th>Margin</th>
-                <th>Profit</th>
-                <th>Remaining</th>
             </tr>
         </thead>
         <tbody>
@@ -64,9 +52,6 @@ else
                 <tr>
                     <td>@data.SalesDate</td>
                     <td>@data.TotalSold</td>
-                    <td>@data.Margin</td>
-                    <td>@data.TotalProfit</td>
-                    <td>@data.RemainingInventory</td>
                 </tr>
             }
         </tbody>
@@ -158,7 +143,6 @@ else
             {
                 markdownPlan = await Http.GetFromJsonAsync<MarkdownPlan>($"/markdownplan/{markdownPlan.Id.ToString()}");
                 inventory = await Http.GetFromJsonAsync<List<Inventory>>("/inventory");
-                salesDataList = await Http.GetFromJsonAsync<List<SalesDatum>>($"/salesdata/forplan/{PlanId}");
             }
 
         }

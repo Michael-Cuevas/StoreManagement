@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StoreManagement.Data;
 
@@ -10,9 +11,11 @@ using StoreManagement.Data;
 namespace StoreManagement.Migrations
 {
     [DbContext(typeof(StoreContext))]
-    partial class StoreContextModelSnapshot : ModelSnapshot
+    [Migration("20231024032032_newcolumsForStory4")]
+    partial class newcolumsForStory4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.12");
@@ -119,8 +122,8 @@ namespace StoreManagement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Margin")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Margin")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("MarkdownPlanId")
                         .HasColumnType("INTEGER");
@@ -131,8 +134,8 @@ namespace StoreManagement.Migrations
                     b.Property<DateOnly>("SalesDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("TotalProfit")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("TotalProfit")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TotalSold")
                         .HasColumnType("INTEGER");
