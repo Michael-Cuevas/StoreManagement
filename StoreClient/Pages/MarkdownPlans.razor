@@ -1,0 +1,178 @@
+﻿@page "/markdownplans"
+@using StoreManagement.Shared.Models
+@using Microsoft.AspNetCore.Components.Web
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Markdown Plans</h3>
+
+<button @onclick="ToggleCreateForm" class="btn btn-primary mb-3">Create New Plan</button>
+
+@if (showCreateForm)
+{
+    <div class="mb-5">
+        <h5>Create New Markdown Plan</h5>
+
+        @if (!string.IsNullOrEmpty(validationMessage))
+        {
+            <div class="alert alert-danger mt-2">
+                @validationMessage
+            </div>
+        }
+
+
+        <label for="startDate">Start Date:</label>
+        <input id="startDate" @bind="newPlan.StartDate" placeholder="Start Date" type="date" class="form-control mb-2" />
+
+        <label for="endDate">End Date:</label>
+        <input id="endDate" @bind="newPlan.EndDate" placeholder="End Date" type="date" class="form-control mb-2" />
+
+        <label for="product">Product:</label>
+        <select id="product" @bind="newPlan.ProductId" class="form-control mb-2">
+            <option value="0">-- Select Product --</option>
+            @foreach (var product in products)
+            {
+                <option value="@product.Id">@product.Name</option>
+            }
+        </select>
+
+
+        <label for="initialReduction">Initial Reduction:</label>
+        <input id="initialReduction" @bind="newPlan.InitialReduction" placeholder="Initial Reduction" type="number" step="0.01" class="form-control mb-2" />
+
+        <label for="intermidiateReduction">Intermidiate Reduction:</label>
+        <input id="intermidiateReduction" @bind="newPlan.IntermidiateReduction" placeholder="Intermidiate Reduction" type="number" step="0.01" class="form-control mb-2" />
+
+        <label for="finalReduction">Final Reduction:</label>
+        <input id="finalReduction" @bind="newPlan.FinalReduction" placeholder="Final Reduction" type="number" step="0.01" class="form-control mb-2" />
+
+        <button @onclick="CreatePlan" class="btn btn-success">Submit</button>
+    </div>
+}
+
+<!-- Existing Markdown Plans Table -->
+@if (markdownPlans == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+<table class="table table-striped mt-5">
+    <thead>
+        <tr>
+            <th>Is Active</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Product</th>
+            <th>Initial Reduction</th>
+            <th>Intermidiate Reduction</th>
+            <th>Final Reduction</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var plan in markdownPlans)
+        {
+            <tr>
+                <td>@plan.IsActive</td>
+                <td>@plan.StartDate</td>
+                <td>@plan.EndDate</td>
+                <td>@GetProductName(plan.ProductId)</td>
+                <td>@plan.InitialReduction</td>
+                <td>@plan.IntermidiateReduction</td>
+                <td>@plan.FinalReduction</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="(() => NavigateToEditPlan(plan.Id))">Edit</button>
+                    <button class="btn btn-danger" @onclick="(() => DeletePlan(plan.Id))">X</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+}
+
+@code {
+    private List<MarkdownPlan> markdownPlans = new List<MarkdownPlan>();
+    private bool showCreateForm = false;
+    private string validationMessage = string.Empty;
+    private MarkdownPlan newPlan = new MarkdownPlan
+    {
+            StartDate = DateOnly.FromDateTime(DateTime.Today), 
+            EndDate = DateOnly.FromDateTime(DateTime.Today)  
+    };
+    private List<Product> products = new List<Product>();
+    private int selectedProductId;
+    private Product selectedProduct;
+
+    protected override async Task OnInitializedAsync()
+    {
+        markdownPlans = await Http.GetFromJsonAsync<List<MarkdownPlan>>("/markdownplan");
+        
+        products = await Http.GetFromJsonAsync<List<Product>>("/products");
+    }
+
+    private string GetProductName(int productId)
+    {
+        return products.FirstOrDefault(p => p.Id == productId)?.Name ?? "Unknown Product";
+    }
+    private Product GetSelectedProduct()
+    {
+        return products.FirstOrDefault(p => p.Id == newPlan.ProductId);
+    }
+
+    private async Task DeletePlan(int id)
+    {
+        var response = await Http.DeleteAsync($"/markdownplan/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            markdownPlans = markdownPlans.Where(p => p.Id != id).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToEditPlan(int planId)
+    {
+        if (markdownPlans.FirstOrDefault(mp => mp.Id == planId).IsActive)
+            Navigation.NavigateTo($"/editmarkdownplansales/{planId.ToString()}");
+        else
+            Navigation.NavigateTo($"/editmarkdownplan/{planId.ToString()}");
+    }
+
+    private void ToggleCreateForm()
+    {
+        showCreateForm = !showCreateForm;
+    }
+
+    private async Task CreatePlan()
+    {
+        //validate date, at least 7 days out
+        if (newPlan.EndDate <= newPlan.StartDate.AddDays(7))
+        {
+            validationMessage = "The end date should be at least one week after the start date.";
+            return; 
+        }
+
+        decimal finalPrice = GetSelectedProduct().Price * (1 - (newPlan.InitialReduction*.01m)) * (1-(newPlan.IntermidiateReduction * .01m)) * (1-(newPlan.FinalReduction * .01m));
+        //validate final reduction
+        if(finalPrice< .5m)
+        {
+            validationMessage = "The final price cannot be less than $0.50, the current reductions make the final price lower than $0.50";
+            return;
+        }
+
+        var response = await Http.PostAsJsonAsync("/markdownplan", newPlan);
+        if (response.IsSuccessStatusCode)
+        {
+            var createdPlan = await response.Content.ReadFromJsonAsync<MarkdownPlan>();
+            markdownPlans.Add(createdPlan);
+        }
+        showCreateForm = false;
+        newPlan = new MarkdownPlan
+            {
+                StartDate = DateOnly.FromDateTime(DateTime.Today), // Reseet form
+                EndDate = DateOnly.FromDateTime(DateTime.Today),
+                ProductId = 0
+            };
+        validationMessage = string.Empty; // Reset validation message
+    }
+}

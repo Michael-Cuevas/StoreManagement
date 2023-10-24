@@ -161,7 +161,7 @@ app.MapPost("/markdownplan", (StoreContext context, MarkdownPlan markdownPlan) =
     return Results.Created($"/markdownplan/{markdownPlan.Id}", markdownPlan);
 });
 // READ all markdown plans
-app.MapGet("/markdownplan", (StoreContext context) =>
+app.MapGet("/markdownplans", (StoreContext context) =>
 {
     return context.MarkdownPlans.Include(m => m.Product).ToList();
 });
@@ -190,6 +190,7 @@ app.MapPut("/markdownplan/{id}", async (StoreContext context, int id, MarkdownPl
     markdownPlan.SaleEnded = updatedMarkdownPlan.SaleEnded;
     markdownPlan.IntermediateCompleted = updatedMarkdownPlan.IntermediateCompleted;
     markdownPlan.InitialCompleted = updatedMarkdownPlan.InitialCompleted;
+    markdownPlan.InitialInventory = updatedMarkdownPlan.InitialInventory;
 
     //context.SaveChanges();
 
@@ -245,6 +246,12 @@ app.MapPut("/salesdata/{id}", async (StoreContext context, int id, SalesDatum up
 
     salesDatum.SalesDate = updatedSalesDatum.SalesDate;
     salesDatum.TotalSold = updatedSalesDatum.TotalSold;
+    salesDatum.TotalProfit = updatedSalesDatum.TotalProfit;
+    salesDatum.MarkdownPlanId = updatedSalesDatum.MarkdownPlanId;
+    salesDatum.MarkdownPlan = updatedSalesDatum.MarkdownPlan;
+    salesDatum.RemainingInventory = updatedSalesDatum.RemainingInventory;
+    salesDatum.Margin = updatedSalesDatum.Margin;
+
 
     context.SaveChanges();
 
@@ -276,6 +283,7 @@ app.MapPut("/activateplan/{id}", async (StoreContext context, int id, MarkdownPl
     var product = context.Products.Find(markdownPlan.ProductId);
     product.Price = product.Price * (1 - (markdownPlan.InitialReduction * .01m));
     markdownPlan.CurrentSaleDate = markdownPlan.StartDate;
+    markdownPlan.InitialInventory = context.Inventories.FirstOrDefault(inv => inv.ProductId == markdownPlan.ProductId).Quantity;
 
     await context.SaveChangesAsync();
     return Results.Ok();
@@ -291,31 +299,24 @@ app.MapPut("/updatepricesandcounts/{id}", async (StoreContext context, int id, S
     int saleProgress = markdown.EndDate.DayNumber - datum.SalesDate.DayNumber;
     float saleProgressPercent = 1- (saleProgress / saleLength);
 
-    /*if (!markdown.InitialCompleted)
-    {
-        product.Price = product.Price * (1-(markdown.InitialReduction * .01m));
-        markdown.InitialCompleted = true;
-    }*/
-
-    //TODO: intermediateCompleted is not being set to true on DB even though it is being set here
     if (!markdown.IntermediateCompleted && saleProgressPercent >= .5)
     {
         product.Price = product.Price * (1-(markdown.IntermidiateReduction *.01m));
         markdown.IntermediateCompleted = true;
-        context.Entry(markdown).State = EntityState.Modified;
+        //context.Entry(markdown).State = EntityState.Modified;
 
     }
     else if(salesDatum.SalesDate == markdown.EndDate.AddDays(-1))
     {
         product.Price = product.Price *(1- (markdown.FinalReduction * .01m));
         markdown.IsActive = true;
-        context.Entry(markdown).State = EntityState.Modified;
+        //context.Entry(markdown).State = EntityState.Modified;
 
     }
     else if(salesDatum.SalesDate == markdown.EndDate)
     {
         markdown.SaleEnded = true;
-        context.Entry(markdown).State = EntityState.Modified;
+        //context.Entry(markdown).State = EntityState.Modified;
     }
 
 

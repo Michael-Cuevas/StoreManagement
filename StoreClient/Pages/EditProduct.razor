@@ -1,0 +1,76 @@
+﻿@page "/editproduct/{ProductId}"
+@using StoreManagement.Shared.Models
+@inject HttpClient Http
+
+<h3>Edit Product</h3>
+
+@if (product == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="product" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label for="name">Name:</label>
+            <InputText id="name" @bind-Value="product.Name" />
+        </div>
+
+        <div>
+            <label for="description">Description:</label>
+            <InputText id="description" @bind-Value="product.Description" />
+        </div>
+
+        <div>
+            <label for="cost">Cost:</label>
+            <InputNumber id="cost" @bind-Value="product.Cost" />
+        </div>
+
+        <div>
+            <label for="price">Price:</label>
+            <InputNumber id="price" @bind-Value="product.Price" />
+        </div>
+
+        <div>
+            <button type="submit">Update</button>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public string ProductId { get; set; }
+
+    private Product? product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            product = await Http.GetFromJsonAsync<Product>($"https://localhost:7005/products/{ProductId}");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message.ToString());
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await Http.PutAsJsonAsync($"https://localhost:7005/products/{ProductId}", product);
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/fetchproducts");
+        }
+        else
+        {
+            // TODO: Handle Error
+        }
+    }
+
+    [Inject]
+    private NavigationManager Navigation { get; set; }
+}
