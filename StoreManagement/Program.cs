@@ -161,7 +161,7 @@ app.MapPost("/markdownplan", (StoreContext context, MarkdownPlan markdownPlan) =
     return Results.Created($"/markdownplan/{markdownPlan.Id}", markdownPlan);
 });
 // READ all markdown plans
-app.MapGet("/markdownplans", (StoreContext context) =>
+app.MapGet("/markdownplan", (StoreContext context) =>
 {
     return context.MarkdownPlans.Include(m => m.Product).ToList();
 });
@@ -296,8 +296,13 @@ app.MapPut("/updatepricesandcounts/{id}", async (StoreContext context, int id, S
     var product = context.Products.Find(markdown.ProductId);
     var inventory = context.Inventories.FirstOrDefault(inv => inv.ProductId == product.Id);
     float saleLength = markdown.EndDate.DayNumber - markdown.StartDate.DayNumber;
-    int saleProgress = markdown.EndDate.DayNumber - datum.SalesDate.DayNumber;
-    float saleProgressPercent = 1- (saleProgress / saleLength);
+    int halfwayProgress = markdown.EndDate.DayNumber - datum.SalesDate.DayNumber-1;
+    float saleProgressPercent = 1- (halfwayProgress / saleLength);
+
+    salesDatum.Margin = product.Price - product.Cost;
+    salesDatum.TotalProfit = salesDatum.Margin * salesDatum.TotalSold;
+    salesDatum.RemainingInventory = inventory.Quantity - salesDatum.TotalSold;
+
 
     if (!markdown.IntermediateCompleted && saleProgressPercent >= .5)
     {

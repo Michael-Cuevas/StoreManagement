@@ -17,11 +17,11 @@ namespace StoreManagement.Shared.Models
 
         public DateOnly SalesDate { get; set; }
 
-        public int Margin { get; set; }
+        public decimal Margin { get; set; }
 
         public int TotalSold { get; set; }
 
-        public int TotalProfit { get; set; }
+        public decimal TotalProfit { get; set; }
 
         public int RemainingInventory { get; set; }
 

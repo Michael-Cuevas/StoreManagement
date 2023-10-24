@@ -146,10 +146,15 @@ else
     private async Task CreatePlan()
     {
         //validate date, at least 7 days out
-        if (newPlan.EndDate <= newPlan.StartDate.AddDays(7))
+        if (newPlan.EndDate <= newPlan.StartDate.AddDays(6))
         {
             validationMessage = "The end date should be at least one week after the start date.";
             return; 
+        }
+        if (newPlan.Product == null)
+        {
+            validationMessage = "You must select a product";
+            return;
         }
 
         decimal finalPrice = GetSelectedProduct().Price * (1 - (newPlan.InitialReduction*.01m)) * (1-(newPlan.IntermidiateReduction * .01m)) * (1-(newPlan.FinalReduction * .01m));
