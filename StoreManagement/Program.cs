@@ -15,25 +15,21 @@ builder.Services.AddDbContext<StoreContext>(options => {
 });
 builder.Services.AddScoped<StoreContext>();
 
-var isDevelopment = builder.Environment.IsDevelopment();
-var allowedOrigins = isDevelopment ?
-                     new[] { "http://localhost:7126" } :
-                     new[] { "https://storeclient.azurewebsites.net" };
-builder.Services.AddCors(opt =>
+builder.Services.AddCors(options =>
 {
-    opt.AddPolicy("CorsPolicy", policy =>
-    {
-        policy
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials()
-            .WithOrigins(allowedOrigins);
-    });
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials()
+                   .SetIsOriginAllowed(origin => true); //TODO, make more specific policy
+        });
 });
 
 var app = builder.Build();
 
-app.UseCors("CorsPolicy");
+app.UseCors("AllowAll");
 
 
 using (var scope = app.Services.CreateScope())
