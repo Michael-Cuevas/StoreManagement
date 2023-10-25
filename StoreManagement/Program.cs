@@ -3,7 +3,6 @@ using StoreManagement.Data;
 using StoreManagement.EndPoints;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddCors();
 
 
 string connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")
