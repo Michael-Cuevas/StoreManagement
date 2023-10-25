@@ -96,9 +96,9 @@ else
     private bool showCreateForm = false;
     private string validationMessage = string.Empty;
     private MarkdownPlan newPlan = new MarkdownPlan
-    {
-            StartDate = DateOnly.FromDateTime(DateTime.Today), 
-            EndDate = DateOnly.FromDateTime(DateTime.Today)  
+        {
+            StartDate = DateTime.Today,//DateOnly.FromDateTime(DateTime.Today), 
+            EndDate = DateTime.Today//DateOnly.FromDateTime(DateTime.Today)
     };
     private List<Product> products = new List<Product>();
     private int selectedProductId;
@@ -175,8 +175,8 @@ else
         showCreateForm = false;
         newPlan = new MarkdownPlan
             {
-                StartDate = DateOnly.FromDateTime(DateTime.Today), // Reseet form
-                EndDate = DateOnly.FromDateTime(DateTime.Today),
+                StartDate = DateTime.Today,//DateOnly.FromDateTime(DateTime.Today), // Reseet form
+                EndDate = DateTime.Today,//DateOnly.FromDateTime(DateTime.Today),
                 ProductId = 0
             };
         validationMessage = string.Empty; // Reset validation message
