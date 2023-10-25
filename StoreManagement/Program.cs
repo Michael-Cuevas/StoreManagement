@@ -19,16 +19,16 @@ var isDevelopment = builder.Environment.IsDevelopment();
 var allowedOrigins = isDevelopment ?
                      new[] { "http://localhost:7126" } :
                      new[] { "https://storeclient.azurewebsites.net" };
-
-builder.Services.AddCors(options =>
+builder.Services.AddCors(opt =>
 {
-    options.AddPolicy("DynamicPolicy",
-        builder =>
-        {
-            builder.WithMethods("GET", "POST", "PUT", "DELETE")
-                   .WithHeaders("Content-Type", "Authorization", "X-Requested-With")
-                   .WithOrigins(allowedOrigins);
-        });
+    opt.AddPolicy("CorsPolicy", policy =>
+    {
+        policy
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .WithOrigins(allowedOrigins);
+    });
 });
 
 var app = builder.Build();
