@@ -11,14 +11,14 @@ string connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTI
 
 
 builder.Services.AddDbContext<StoreContext>(options => {
-    options.UseSqlServer(builder.Configuration.GetConnectionString(connectionString));
-    });
+    options.UseSqlServer(connectionString);
+});
 builder.Services.AddScoped<StoreContext>();
 
 var isDevelopment = builder.Environment.IsDevelopment();
 var allowedOrigins = isDevelopment ?
-                     new[] { "http://localhost:7126" } : // replace with your development frontend port
-                     new[] { "https://storeclient.azurewebsites.net/" };
+                     new[] { "http://localhost:7126" } :
+                     new[] { "https://storeclient.azurewebsites.net" };
 
 builder.Services.AddCors(options =>
 {
@@ -28,8 +28,6 @@ builder.Services.AddCors(options =>
             builder.WithMethods("GET", "POST", "PUT", "DELETE")
                    .WithHeaders("Content-Type", "Authorization", "X-Requested-With")
                    .WithOrigins(allowedOrigins);
-            // If not using cookies, remove the next line
-            //.AllowCredentials(); 
         });
 });
 
