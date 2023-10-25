@@ -33,7 +33,7 @@ builder.Services.AddCors(opt =>
 
 var app = builder.Build();
 
-app.UseCors("DynamicPolicy");
+app.UseCors("CorsPolicy");
 
 
 using (var scope = app.Services.CreateScope())
