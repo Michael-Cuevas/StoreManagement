@@ -62,7 +62,7 @@ else
             @foreach (var data in salesDataList)
             {
                 <tr>
-                    <td>@data.SalesDate</td>
+                    <td>@data.SalesDate.Date</td>
                     <td>@data.TotalSold</td>
                     <td>@data.Margin</td>
                     <td>@data.TotalProfit</td>
@@ -136,7 +136,7 @@ else
         }
         else
         {
-            markdownPlan.CurrentSaleDate = DateOnly.FromDateTime(DateTime.Today);
+            markdownPlan.CurrentSaleDate = DateTime.Today;//DateOnly.FromDateTime(DateTime.Today);
         }
         if (markdownPlan.CurrentSaleDate > markdownPlan.EndDate)
             markdownPlan.SaleEnded = true;

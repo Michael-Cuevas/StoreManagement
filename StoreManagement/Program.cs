@@ -4,26 +4,38 @@ using StoreManagement.EndPoints;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors();
+
+
+string connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")
+                    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+
 builder.Services.AddDbContext<StoreContext>(options => {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString(connectionString));
     });
 builder.Services.AddScoped<StoreContext>();
 
+var isDevelopment = builder.Environment.IsDevelopment();
+var allowedOrigins = isDevelopment ?
+                     new[] { "http://localhost:7126" } : // replace with your development frontend port
+                     new[] { "https://storeclient.azurewebsites.net/" };
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
+    options.AddPolicy("DynamicPolicy",
         builder =>
         {
-            builder.AllowAnyMethod()
-                   .AllowAnyHeader()
-                   .AllowCredentials()
-                   .SetIsOriginAllowed(origin => true); //TODO, make more specific policy
+            builder.WithMethods("GET", "POST", "PUT", "DELETE")
+                   .WithHeaders("Content-Type", "Authorization", "X-Requested-With")
+                   .WithOrigins(allowedOrigins);
+            // If not using cookies, remove the next line
+            //.AllowCredentials(); 
         });
 });
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+app.UseCors("DynamicPolicy");
 
 
 using (var scope = app.Services.CreateScope())

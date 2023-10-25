@@ -14,13 +14,6 @@ namespace StoreManagement.Data
 
         public DbSet<SalesDatum> SalesData { get; set; }
 
-        /* uncomment for postgres
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql("PostgreConnectionString");
-        }
-        */
-
         public void SeedData()
         {
             if (!Products.Any())

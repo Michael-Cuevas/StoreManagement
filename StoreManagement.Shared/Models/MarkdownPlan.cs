@@ -4,13 +4,13 @@
     {
         public int Id { get; set; }
 
-        public DateOnly StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
-        public DateOnly EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         public int InitialInventory { get; set; }
 
-        public DateOnly? CurrentSaleDate { get; set; }
+        public DateTime? CurrentSaleDate { get; set; }
 
         public virtual Product Product { get; set; }
 

@@ -30,8 +30,8 @@ namespace StoreManagement.EndPoints
                 var markdown = context.MarkdownPlans.Find(salesDatum.MarkdownPlanId);
                 var product = context.Products.Find(markdown.ProductId);
                 var inventory = context.Inventories.FirstOrDefault(inv => inv.ProductId == product.Id);
-                float saleLength = markdown.EndDate.DayNumber - markdown.StartDate.DayNumber;
-                int halfwayProgress = markdown.EndDate.DayNumber - datum.SalesDate.DayNumber - 1;
+                float saleLength = markdown.EndDate.Day - markdown.StartDate.Day;
+                int halfwayProgress = markdown.EndDate.Day - datum.SalesDate.Day - 1;
                 float saleProgressPercent = 1 - (halfwayProgress / saleLength);
 
                 salesDatum.Margin = product.Price - product.Cost;

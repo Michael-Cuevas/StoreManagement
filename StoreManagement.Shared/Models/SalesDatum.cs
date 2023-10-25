@@ -15,7 +15,7 @@ namespace StoreManagement.Shared.Models
 
         public int MarkdownPlanId { get; set; }
 
-        public DateOnly SalesDate { get; set; }
+        public DateTime SalesDate { get; set; }
 
         public decimal Margin { get; set; }
 
